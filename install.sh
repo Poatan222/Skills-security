@@ -4,23 +4,26 @@ set -e
 CLAUDE_DIR="$HOME/.claude"
 SKILLS_DIR="$CLAUDE_DIR/skills"
 
-# When piped via curl | bash, BASH_SOURCE[0] is empty.
-# Detect this and clone the repo to a temp dir instead.
-if [[ -z "${BASH_SOURCE[0]}" || "${BASH_SOURCE[0]}" == "bash" || "${BASH_SOURCE[0]}" == "/dev/stdin" ]]; then
-  TMPDIR="$(mktemp -d)"
-  echo "[>] Cloning Skills-security to $TMPDIR..."
-  git clone --depth=1 https://github.com/Poatan222/Skills-security.git "$TMPDIR/repo" 2>/dev/null
-  REPO_DIR="$TMPDIR/repo"
-else
-  REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-fi
-
 echo ""
 echo "╔══════════════════════════════════════════╗"
 echo "║  Claude Code Security Suite — Installer  ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
-echo "Repo dir: $REPO_DIR"
+
+# Detect if running via curl | bash (no real script path available)
+# $0 will be "bash" or "-bash" when piped, not a file path
+SCRIPT_PATH="${BASH_SOURCE[0]:-$0}"
+
+if [[ "$SCRIPT_PATH" == "bash" || "$SCRIPT_PATH" == "-bash" || "$SCRIPT_PATH" == "/dev/stdin" || -z "$SCRIPT_PATH" ]]; then
+  INSTALL_TMPDIR="$(mktemp -d /tmp/sec-suite-XXXXXX)"
+  echo "[>] Detected pipe mode — cloning repo to $INSTALL_TMPDIR..."
+  git clone --depth=1 https://github.com/Poatan222/Skills-security.git "$INSTALL_TMPDIR/repo"
+  REPO_DIR="$INSTALL_TMPDIR/repo"
+else
+  REPO_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+fi
+
+echo "[>] Installing from: $REPO_DIR"
 echo ""
 
 mkdir -p "$SKILLS_DIR"
@@ -38,6 +41,8 @@ for skill in "${NEW_SKILLS[@]}"; do
     echo "[>] Installing: $skill"
     mkdir -p "$SKILLS_DIR/$skill"
     cp -r "$REPO_DIR/skills/$skill/." "$SKILLS_DIR/$skill/"
+  else
+    echo "[!] Skipping $skill (not found in $REPO_DIR/skills/)"
   fi
 done
 
@@ -52,7 +57,8 @@ for skill in "${EXISTING[@]}"; do
 done
 
 echo ""
-echo "✓ Installation complete — $SKILLS_DIR"
+echo "✓ Installation complete"
+echo "  Skills installed to: $SKILLS_DIR"
 echo ""
 echo "Commands available in Claude Code:"
 echo "  /sec audit <target>     Full engagement (4 parallel agents)"
@@ -67,9 +73,8 @@ echo "  /sec api <url>          API penetration testing"
 echo "  /sec code <file>        Secure code review"
 echo "  /sec triage <scan>      Vulnerability triage"
 echo "  /sec threat <arch>      Threat modeling"
-echo "  /sec cspm <output>      Cloud security posture"
 echo "  /sec report <findings>  PDF report generation"
 echo ""
-echo "Optional: pip install reportlab  (PDF reports)"
+echo "Optional: pip install reportlab  (enables PDF reports)"
 echo "Optional: brew install subfinder amass syft trivy"
 echo ""
