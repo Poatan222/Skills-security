@@ -1,73 +1,133 @@
-# Security Skills for AI Agents
+# Claude Code Security Suite
 
-A collection of production-ready Skills that teach AI agents how to perform core security workflows. Built for Claude, adaptable to any agentic AI platform (LangGraph, OpenAI Agents, Copilot, etc).
+A production-grade security skill suite for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
+Built for security practitioners who work hands-on — not for generating generic reports,
+but for finding real vulnerabilities, building PoCs, and delivering client-ready output.
 
-## What are Skills?
+**Philosophy:** PoC and GTFO. Find the critical bug first. Prove it. Report it. Move on.
 
-Skills are reusable instruction sets that teach AI agents **how** to do a specific job — not just what to do, but the reasoning, tool sequences, edge cases, and output formats. Think of them as runbooks an agent can follow autonomously.
+---
 
-## Skills Included
+## What This Does
 
-| Skill | Description | Use Case |
-|-------|-------------|----------|
-| [vuln-triage](./vuln-triage/) | Triage vulnerability scan results using EPSS, CISA KEV, and asset criticality | Vulnerability Management |
-| [threat-modeling](./threat-modeling/) | Generate STRIDE-based threat models from architecture descriptions | Threat Modeling |
-| [cspm-prowler](./cspm-prowler/) | Analyze Prowler CSPM scan outputs and prioritize cloud misconfigurations | Cloud Security Posture Management |
-| [api-pentest](./api-pentest/) | GTFO-first API penetration testing across 5 attack families with PoC-driven findings | API Security Testing |
-| [secure-code-review](./secure-code-review/) | Taint, data flow, and control flow analysis for Java/Spring, Python/Django/Flask, Node/Express | Application Security |
+```
+> /sec audit https://app.example.com
 
-## Structure
+Target: https://app.example.com
+Mode: Full Engagement (4 parallel agents)
 
-Each skill follows the same anatomy:
+  [1] sec-recon       Complete — 3 findings (1H, 2M)
+  [2] sec-dast        Complete — 5 findings (1C, 2H, 2M)
+  [3] api-pentest     CRITICAL FOUND — GTFO triggered
+  [4] secure-code     Complete — 4 findings (2H, 2L)
 
-```text
-skill-name/
-├── SKILL.md                # Workflow logic (the skill itself)
-├── references/             # Data files loaded on demand
-├── scripts/                # Helper scripts for deterministic tasks
-└── assets/                 # Templates, icons, output formats
+Total: 13 findings | Critical: 1 | High: 5 | Medium: 4 | Low: 3
+Risk Score: 87/100 — CRITICAL
+
+Full report: SECURITY-AUDIT.md
+PDF:         /sec report SECURITY-AUDIT.md
 ```
 
-## How to Use
+---
 
-**With Claude (claude.ai or Claude Code):**
-Upload the skill folder or add it to your project. Claude reads SKILL.md when the trigger conditions match.
+## New Skills (this suite)
 
-**With other agents:**
-Adapt SKILL.md as a system prompt or tool instruction. The workflow logic is agent-agnostic.
+| Command | Skill | Description |
+|---------|-------|-------------|
+| `/sec recon <target>` | sec-recon | Subdomain enum, secrets scanning, attack surface mapping |
+| `/sec iac <path>` | sec-iac | Terraform, CloudFormation, K8s YAML security review |
+| `/sec container <image>` | sec-container | Docker image and K8s manifest security |
+| `/sec ir <logs>` | sec-ir | Incident response triage, log analysis, blast radius |
+| `/sec dast <url>` | sec-dast | Web application active security testing |
+| `/sec cicd <repo>` | sec-cicd | GitHub Actions, Jenkins, GitLab CI security review |
+| `/sec sbom <manifest>` | sec-sbom | SBOM, dependency CVEs, supply chain risk |
+| `/sec report <findings>` | sec-report-pdf | Professional PDF security report |
+| `/sec audit <target>` | Orchestrated | Full engagement — 4 parallel agents |
 
-## Skill Details
+## Integrated Skills (from original Skills-security repo)
 
-### Vulnerability Triage
-Ingests scan output from any scanner, normalizes to CVSS + EPSS + CISA KEV, scores by asset criticality, and generates prioritized remediation tickets. Includes human review gate for critical findings. References: risk policy, asset inventory, compensating controls, compliance mapping, remediation templates (Linux, containers, cloud).
+| Command | Skill | Description |
+|---------|-------|-------------|
+| `/sec api <url>` | api-pentest | GTFO-first API pentesting — BOLA, AuthN, Injection, SSRF |
+| `/sec triage <scan>` | vuln-triage | Vulnerability triage with EPSS, CISA KEV, asset criticality |
+| `/sec threat <arch>` | threat-modeling | STRIDE-based threat modeling |
+| `/sec cspm <o>` | cspm-prowler | AWS/Azure/GCP cloud security posture via Prowler |
+| `/sec code <file>` | secure-code-review | Taint, data flow, control flow for Java/Python/Node |
 
-### Threat Modeling
-STRIDE-based analysis from architecture descriptions or diagrams. Identifies trust boundaries, classifies data sensitivity, and produces a threat register with risk ratings and mitigations. References: STRIDE patterns, OWASP Top 10 mapping, mitigation library, data classification tiers.
+---
 
-### CSPM with Prowler
-Analyzes Prowler scan results across AWS, Azure, and GCP. Re-prioritizes findings using asset criticality and exposure context (not just Prowler severity). Generates compliance dashboards and targeted re-scan commands. References: provider-specific setup guides, compliance framework mapping, severity overrides.
+## Installation
 
-### API Penetration Testing
-GTFO-first approach: test attack families in order of highest-impact-finding likelihood. Five modules: BOLA/IDOR, AuthN/AuthZ, Input Validation (SQLi/XSS/CMDi/NoSQLi), SSRF, and Business Logic. Every finding requires a working PoC. Includes WAF bypass techniques, filter evasion, and blind detection methods.
+```bash
+# One-command install
+curl -fsSL https://raw.githubusercontent.com/Poatan222/Skills-security/main/install.sh | bash
 
-### Secure Code Review
-Four analysis techniques: taint analysis (source-to-sink), data flow analysis, control flow analysis, and framework-specific pattern matching. Framework references cover dangerous defaults, insecure configurations, parser differentials, and common anti-patterns for Spring Boot, Django, Flask, and Express.
+# Manual install (inspect first)
+git clone https://github.com/Poatan222/Skills-security.git
+cd Skills-security
+cat install.sh
+./install.sh
 
-## Customization
+# Optional: PDF report generation
+pip install reportlab
 
-Every skill ships with default thresholds and policies. Customize for your org:
+# Optional: Enhanced scanning tools
+brew install subfinder amass syft trivy
+```
 
-- `references/risk-policy.md` — SLAs, EPSS thresholds, escalation paths
-- `references/asset-inventory.md` — Your crown jewels and asset tiers
-- Compliance mappings — Which frameworks matter to you
+---
+
+## Architecture
+
+```
+Skills-security/
+├── sec/SKILL.md                     # Main orchestrator — routes all /sec commands
+├── skills/
+│   ├── sec-recon/SKILL.md           # Attack surface recon
+│   ├── sec-iac/SKILL.md             # IaC security review
+│   ├── sec-container/SKILL.md       # Container and K8s security
+│   ├── sec-ir/SKILL.md              # Incident response triage
+│   ├── sec-dast/SKILL.md            # Web app dynamic testing
+│   ├── sec-cicd/SKILL.md            # CI/CD pipeline security
+│   ├── sec-sbom/SKILL.md            # SBOM and dependency risk
+│   └── sec-report-pdf/SKILL.md      # PDF report generation
+├── api-pentest/                     # Existing: API pentest
+├── vuln-triage/                     # Existing: Vuln triage
+├── threat-modeling/                 # Existing: Threat modeling
+├── cspm-prowler/                    # Existing: Cloud security posture
+└── secure-code-review/              # Existing: Secure code review
+```
+
+---
+
+## Output Files
+
+| Skill | Output |
+|-------|--------|
+| /sec audit | SECURITY-AUDIT.md |
+| /sec recon | RECON-REPORT.md |
+| /sec dast | DAST-REPORT.md |
+| /sec iac | IAC-SECURITY-REPORT.md |
+| /sec container | CONTAINER-SECURITY-REPORT.md |
+| /sec cicd | CICD-SECURITY-REPORT.md |
+| /sec sbom | SBOM-REPORT.md |
+| /sec ir | IR-TRIAGE-REPORT.md |
+| /sec report | SECURITY-REPORT.pdf |
+
+---
+
+## Responsible Use
+
+Confirm you own the target or have written authorization before running active tests.
+The orchestrator enforces scope confirmation before any active probing.
+
+---
 
 ## Contributing
 
-These skills are open reference points. Fork, adapt, extend. PRs welcome for:
-- New attack family modules (e.g., GraphQL, gRPC)
-- New framework references (e.g., .NET, Go, Ruby on Rails)
-- New security skills (e.g., incident response, forensics, DAST)
+PRs welcome for new attack modules (GraphQL, gRPC, WebSockets),
+new framework references, new skills (forensics, OSINT automation, red team playbooks).
 
 ## License
 
-MIT — use freely, no warranty. Customize for your environment before production use.
+MIT — use freely, customize for your environment before production use.

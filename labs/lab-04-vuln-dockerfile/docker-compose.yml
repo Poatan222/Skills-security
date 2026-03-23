@@ -1,0 +1,20 @@
+# LAB-04: Vulnerable docker-compose
+version: '3.8'
+services:
+  app:
+    build: .
+    # VULN: privileged container
+    privileged: true
+    # VULN: docker socket mounted
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc:/host-etc
+    # VULN: host network mode
+    network_mode: host
+    # VULN: no resource limits
+    environment:
+      - DB_PASSWORD=hardcoded_password
+    # VULN: SYS_ADMIN capability
+    cap_add:
+      - SYS_ADMIN
+      - NET_ADMIN
